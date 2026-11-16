@@ -1,3 +1,4 @@
+
 package com.focuslock.app;
 
 import android.app.Activity;
@@ -16,6 +17,8 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.focuslock.app.tracking.V3SessionRecorder;
 
 import java.util.Set;
 
@@ -40,6 +43,7 @@ public class MainActivity extends Activity {
     private Button btnViewHistory;
 
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
+
     private final Runnable uiUpdater = new Runnable() {
         @Override
         public void run() {
@@ -72,117 +76,212 @@ public class MainActivity extends Activity {
         btnViewHistory = findViewById(R.id.btnViewHistory);
 
         if (Build.VERSION.SDK_INT >= 33) {
-            if (checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 101);
+            if (checkSelfPermission("android.permission.POST_NOTIFICATIONS")
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{"android.permission.POST_NOTIFICATIONS"},
+                        101
+                );
             }
         }
 
-        // Quick Subject Preset Buttons
-        findViewById(R.id.btnSubjMaths).setOnClickListener(v -> etSubjectInput.setText("Maths"));
-        findViewById(R.id.btnSubjPhysics).setOnClickListener(v -> etSubjectInput.setText("Physics"));
-        findViewById(R.id.btnSubjChem).setOnClickListener(v -> etSubjectInput.setText("Chem"));
-        findViewById(R.id.btnSubjOther).setOnClickListener(v -> etSubjectInput.setText("Revision"));
+        findViewById(R.id.btnSubjMaths)
+                .setOnClickListener(v -> etSubjectInput.setText("Maths"));
+        findViewById(R.id.btnSubjPhysics)
+                .setOnClickListener(v -> etSubjectInput.setText("Physics"));
+        findViewById(R.id.btnSubjChem)
+                .setOnClickListener(v -> etSubjectInput.setText("Chem"));
+        findViewById(R.id.btnSubjOther)
+                .setOnClickListener(v -> etSubjectInput.setText("Revision"));
 
-        // Quick Timer Preset Buttons
-        findViewById(R.id.btnPreset30).setOnClickListener(v -> etMinutesInput.setText("30"));
-        findViewById(R.id.btnPreset60).setOnClickListener(v -> etMinutesInput.setText("60"));
-        findViewById(R.id.btnPreset90).setOnClickListener(v -> etMinutesInput.setText("90"));
-        findViewById(R.id.btnPreset120).setOnClickListener(v -> etMinutesInput.setText("120"));
+        findViewById(R.id.btnPreset30)
+                .setOnClickListener(v -> etMinutesInput.setText("30"));
+        findViewById(R.id.btnPreset60)
+                .setOnClickListener(v -> etMinutesInput.setText("60"));
+        findViewById(R.id.btnPreset90)
+                .setOnClickListener(v -> etMinutesInput.setText("90"));
+        findViewById(R.id.btnPreset120)
+                .setOnClickListener(v -> etMinutesInput.setText("120"));
 
         btnStartFocus.setOnClickListener(v -> startFocusSession());
 
         btnPauseResume.setOnClickListener(v -> {
             if (StorageHelper.isSessionActive(MainActivity.this)) {
-                boolean currentlyPaused = StorageHelper.isSessionPaused(MainActivity.this);
+                boolean currentlyPaused =
+                        StorageHelper.isSessionPaused(MainActivity.this);
+
                 if (!currentlyPaused) {
-                    int pauses = StorageHelper.getPauseCount(MainActivity.this);
+                    int pauses =
+                            StorageHelper.getPauseCount(MainActivity.this);
+
                     if (pauses >= 2) {
-                        Toast.makeText(MainActivity.this, "Strict Rule: Max 2 pauses allowed per session!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(
+                                MainActivity.this,
+                                "Strict Rule: Max 2 pauses allowed per session!",
+                                Toast.LENGTH_LONG
+                        ).show();
                         return;
                     }
+
                     StorageHelper.incrementPauseCount(MainActivity.this);
                     StorageHelper.setSessionPaused(MainActivity.this, true);
-                    Toast.makeText(MainActivity.this, "Timer Paused (10-min auto-resume rule active). Apps locked!", Toast.LENGTH_LONG).show();
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Timer Paused (10-min auto-resume rule active). Apps locked!",
+                            Toast.LENGTH_LONG
+                    ).show();
+
                 } else {
                     StorageHelper.setSessionPaused(MainActivity.this, false);
-                    Toast.makeText(MainActivity.this, "Study Timer Resumed!", Toast.LENGTH_SHORT).show();
+
+                    Toast.makeText(
+                            MainActivity.this,
+                            "Study Timer Resumed!",
+                            Toast.LENGTH_SHORT
+                    ).show();
                 }
+
                 updateUI();
             }
         });
 
         btnEnableBlocker.setOnClickListener(v -> {
-            Intent intent = new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
+            Intent intent =
+                    new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS);
             startActivity(intent);
-            Toast.makeText(MainActivity.this, "Find 'Focus Lock App Blocker' and turn it ON", Toast.LENGTH_LONG).show();
+
+            Toast.makeText(
+                    MainActivity.this,
+                    "Find 'Focus Lock App Blocker' and turn it ON",
+                    Toast.LENGTH_LONG
+            ).show();
         });
 
         btnSelectApps.setOnClickListener(v -> {
             if (StorageHelper.isSessionActive(MainActivity.this)) {
-                Toast.makeText(MainActivity.this, "Locked! Cannot change apps until timer hits 00:00.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(
+                        MainActivity.this,
+                        "Locked! Cannot change apps until timer hits 00:00.",
+                        Toast.LENGTH_SHORT
+                ).show();
                 return;
             }
-            startActivity(new Intent(MainActivity.this, AppSelectActivity.class));
+
+            startActivity(
+                    new Intent(MainActivity.this, AppSelectActivity.class)
+            );
         });
 
-        btnViewHistory.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HistoryActivity.class)));
+        btnViewHistory.setOnClickListener(v ->
+                startActivity(
+                        new Intent(MainActivity.this, HistoryActivity.class)
+                )
+        );
     }
 
     private void startFocusSession() {
         if (!isAccessibilityServiceEnabled()) {
-            Toast.makeText(this, "Please turn ON the Blocker Permission first!", Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS));
+            Toast.makeText(
+                    this,
+                    "Please turn ON the Blocker Permission first!",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            startActivity(
+                    new Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            );
             return;
         }
 
         Set<String> blockedApps = StorageHelper.getBlockedApps(this);
+
         if (blockedApps.isEmpty()) {
-            Toast.makeText(this, "Please select at least 1 distracting app to block first!", Toast.LENGTH_LONG).show();
+            Toast.makeText(
+                    this,
+                    "Please select at least 1 distracting app to block first!",
+                    Toast.LENGTH_LONG
+            ).show();
+
             startActivity(new Intent(this, AppSelectActivity.class));
             return;
         }
 
-        String inputMins = etMinutesInput.getText().toString().trim();
-        String subject = etSubjectInput.getText().toString().trim();
-        if (TextUtils.isEmpty(subject)) subject = "General Study";
+        String inputMins =
+                etMinutesInput.getText().toString().trim();
+
+        String subject =
+                etSubjectInput.getText().toString().trim();
+
+        if (TextUtils.isEmpty(subject)) {
+            subject = "General Study";
+        }
 
         int minutes;
+
         try {
             minutes = Integer.parseInt(inputMins);
         } catch (NumberFormatException e) {
-            Toast.makeText(this, "Please enter a valid number of minutes", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "Please enter a valid number of minutes",
+                    Toast.LENGTH_SHORT
+            ).show();
             return;
         }
 
         if (minutes <= 0) {
-            Toast.makeText(this, "Minutes must be at least 1", Toast.LENGTH_SHORT).show();
+            Toast.makeText(
+                    this,
+                    "Minutes must be at least 1",
+                    Toast.LENGTH_SHORT
+            ).show();
             return;
         }
 
         StorageHelper.startSession(this, minutes, subject);
+
+        // V3: Save the session details for the new study database.
+        V3SessionRecorder.startSession(this, subject, minutes);
+
         Intent serviceIntent = new Intent(this, TimerService.class);
         startForegroundService(serviceIntent);
 
-        Toast.makeText(this, "Focus Lock 2.0 started! Apps & Settings are locked.", Toast.LENGTH_LONG).show();
+        Toast.makeText(
+                this,
+                "Focus Lock V3 started! Apps & Settings are locked.",
+                Toast.LENGTH_LONG
+        ).show();
+
         updateUI();
     }
 
     private void updateUI() {
         int todayMins = StorageHelper.getTodayStudyMinutes(this);
-        tvTodayStudyTime.setText("Today's Study Time: " + StorageHelper.formatMinutesReadable(todayMins));
+
+        tvTodayStudyTime.setText(
+                "Today's Study Time: "
+                        + StorageHelper.formatMinutesReadable(todayMins)
+        );
 
         int streak = StorageHelper.getStreakDays(this);
         tvStreakBadge.setText("Streak: " + streak + " Days");
 
-        int goalMins = 240; // 4 hours daily goal
+        int goalMins = 240;
         int progressPercent = Math.min(100, (todayMins * 100) / goalMins);
+
         progressBarDailyGoal.setProgress(Math.min(240, todayMins));
-        tvGoalProgressText.setText("Daily Goal (4 hrs): " + progressPercent + "% completed");
+
+        tvGoalProgressText.setText(
+                "Daily Goal (4 hrs): " + progressPercent + "% completed"
+        );
 
         if (isAccessibilityServiceEnabled()) {
             btnEnableBlocker.setText("Blocker Permission: ON (Active)");
         } else {
-            btnEnableBlocker.setText("Blocker Permission: OFF (Tap to Turn ON)");
+            btnEnableBlocker.setText(
+                    "Blocker Permission: OFF (Tap to Turn ON)"
+            );
         }
 
         if (StorageHelper.isSessionActive(this)) {
@@ -192,23 +291,42 @@ public class MainActivity extends Activity {
             btnSelectApps.setEnabled(false);
 
             String sub = StorageHelper.getCurrentSubject(this);
+
             tvCurrentSubjectLabel.setText("Current Subject: " + sub);
             tvCurrentSubjectLabel.setVisibility(View.VISIBLE);
 
             long remaining = StorageHelper.getRemainingSeconds(this);
-            tvTimerDisplay.setText(StorageHelper.formatTimeMMSS(remaining));
+
+            tvTimerDisplay.setText(
+                    StorageHelper.formatTimeMMSS(remaining)
+            );
+
             progressBarTimerRing.setProgress((int) remaining);
 
             int pausesLeft = 2 - StorageHelper.getPauseCount(this);
+
             if (StorageHelper.isSessionPaused(this)) {
-                tvStatusBadge.setText("PAUSED (Auto-resumes in 10m) — APPS LOCKED");
+                tvStatusBadge.setText(
+                        "PAUSED (Auto-resumes in 10m) — APPS LOCKED"
+                );
+
                 btnPauseResume.setText("RESUME STUDY TIMER");
                 tvPauseInfo.setText("Pauses left: " + pausesLeft + " / 2");
+
             } else {
-                tvStatusBadge.setText("FOCUSING — APPS & SETTINGS LOCKED");
-                btnPauseResume.setText("PAUSE TIMER (" + pausesLeft + " left)");
-                tvPauseInfo.setText("Strict Mode: Max 2 pauses (10m auto-resume)");
+                tvStatusBadge.setText(
+                        "FOCUSING — APPS & SETTINGS LOCKED"
+                );
+
+                btnPauseResume.setText(
+                        "PAUSE TIMER (" + pausesLeft + " left)"
+                );
+
+                tvPauseInfo.setText(
+                        "Strict Mode: Max 2 pauses (10m auto-resume)"
+                );
             }
+
         } else {
             layoutSetupControls.setVisibility(View.VISIBLE);
             btnStartFocus.setVisibility(View.VISIBLE);
@@ -218,16 +336,24 @@ public class MainActivity extends Activity {
 
             tvStatusBadge.setText("Ready to Study");
 
-            String input = etMinutesInput.getText().toString().trim();
+            String input =
+                    etMinutesInput.getText().toString().trim();
+
             try {
                 int mins = Integer.parseInt(input);
+
                 if (mins > 0) {
-                    tvTimerDisplay.setText(StorageHelper.formatTimeMMSS(mins * 60L));
+                    tvTimerDisplay.setText(
+                            StorageHelper.formatTimeMMSS(mins * 60L)
+                    );
+
                     progressBarTimerRing.setMax(mins * 60);
                     progressBarTimerRing.setProgress(mins * 60);
+
                 } else {
                     tvTimerDisplay.setText("00:00");
                 }
+
             } catch (NumberFormatException e) {
                 tvTimerDisplay.setText("00:00");
             }
@@ -235,17 +361,29 @@ public class MainActivity extends Activity {
     }
 
     private boolean isAccessibilityServiceEnabled() {
-        String serviceName = getPackageName() + "/" + BlockerAccessibilityService.class.getCanonicalName();
-        String enabledServices = Settings.Secure.getString(getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
-        return enabledServices != null && enabledServices.contains(serviceName);
+        String serviceName =
+                getPackageName() + "/"
+                        + BlockerAccessibilityService.class.getCanonicalName();
+
+        String enabledServices = Settings.Secure.getString(
+                getContentResolver(),
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+        );
+
+        return enabledServices != null
+                && enabledServices.contains(serviceName);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+
         if (StorageHelper.isSessionActive(this)) {
-            startForegroundService(new Intent(this, TimerService.class));
+            startForegroundService(
+                    new Intent(this, TimerService.class)
+            );
         }
+
         uiHandler.post(uiUpdater);
     }
 
