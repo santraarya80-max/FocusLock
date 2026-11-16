@@ -11,7 +11,8 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/ic_lock_idle_lock"
+        android:icon="@drawable/ic_launcher_lock"
+        android:roundIcon="@drawable/ic_launcher_lock"
         android:label="Focus Lock"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
 
