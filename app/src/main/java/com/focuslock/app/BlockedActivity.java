@@ -3,13 +3,14 @@ package com.focuslock.app;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 public class BlockedActivity extends Activity {
 
     private TextView tvBlockedRemaining;
+    private TextView tvBlockedSubject;
+    private TextView tvMotivationalQuote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,16 +18,16 @@ public class BlockedActivity extends Activity {
         setContentView(R.layout.activity_blocked);
 
         tvBlockedRemaining = findViewById(R.id.tvBlockedRemaining);
+        tvBlockedSubject = findViewById(R.id.tvBlockedSubject);
+        tvMotivationalQuote = findViewById(R.id.tvMotivationalQuote);
         Button btnGoHome = findViewById(R.id.btnGoHome);
+
+        tvBlockedSubject.setText("Studying: " + StorageHelper.getCurrentSubject(this));
+        tvMotivationalQuote.setText("\"" + StorageHelper.getRandomMotivationalQuote() + "\"");
 
         updateRemainingText();
 
-        btnGoHome.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                sendToPhoneHomeScreen();
-            }
-        });
+        btnGoHome.setOnClickListener(v -> sendToPhoneHomeScreen());
     }
 
     @Override
@@ -55,8 +56,6 @@ public class BlockedActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // Prevent pressing Back to return to the distracting app
         sendToPhoneHomeScreen();
     }
 }
-
