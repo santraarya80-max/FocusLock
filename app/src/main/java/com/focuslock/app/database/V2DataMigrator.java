@@ -1,36 +1,29 @@
+
 package com.focuslock.app.database;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.content.ContentValues;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TimeZone;
+import java.util.Set;
 
 public final class V2DataMigrator {
 
     private static final String OLD_PREFS = "FocusLockDatabaseV2";
-    private static final String MIGRATION_PREFS = "FocusLockV3Migration";
-    private static final String MIGRATION_DONE = "v2_history_imported";
+    private static final String MIGRATION_KEY = "v2_history_imported";
 
     private V2DataMigrator() {
     }
 
     public static boolean migrate(Context context) {
-
-        SharedPreferences migrationPrefs =
-                context.getSharedPreferences(
-                        MIGRATION_PREFS, Context.MODE_PRIVATE
-                );
-
-        if (migrationPrefs.getBoolean(MIGRATION_DONE, false)) {
-            return true;
-        }
 
         SharedPreferences oldPrefs =
                 context.getSharedPreferences(
@@ -42,6 +35,8 @@ public final class V2DataMigrator {
         HashMap<String, Integer> dailyTotals = new HashMap<>();
         HashMap<String, HashMap<String, Integer>> subjectTotals =
                 new HashMap<>();
+
+        Set<String> dates = new HashSet<>();
 
         for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
 
@@ -56,7 +51,9 @@ public final class V2DataMigrator {
             if (key.startsWith("history_")) {
 
                 String date = key.substring("history_".length());
+
                 dailyTotals.put(date, minutes);
+                dates.add(date);
 
             } else if (key.startsWith("subject_")) {
 
@@ -82,6 +79,7 @@ public final class V2DataMigrator {
                 }
 
                 subjects.put(subject, minutes);
+                dates.add(date);
             }
         }
 
@@ -94,16 +92,35 @@ public final class V2DataMigrator {
 
             db.beginTransaction();
 
+            db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS migration_log (" +
+                    "migration_key TEXT PRIMARY KEY, " +
+                    "completed_at INTEGER NOT NULL)"
+            );
+
+            Cursor check = db.query(
+                    "migration_log",
+                    new String[]{"migration_key"},
+                    "migration_key = ?",
+                    new String[]{MIGRATION_KEY},
+                    null, null, null
+            );
+
+            boolean alreadyMigrated = check.moveToFirst();
+            check.close();
+
+            if (alreadyMigrated) {
+                db.setTransactionSuccessful();
+                db.endTransaction();
+                return true;
+            }
+
             SimpleDateFormat dateFormat =
                     new SimpleDateFormat("yyyy-MM-dd", Locale.US);
 
             dateFormat.setLenient(false);
 
-            for (Map.Entry<String, Integer> day :
-                    dailyTotals.entrySet()) {
-
-                String date = day.getKey();
-                int dailyMinutes = day.getValue();
+            for (String date : dates) {
 
                 long dayStart;
 
@@ -141,6 +158,10 @@ public final class V2DataMigrator {
                     }
                 }
 
+                int dailyMinutes =
+                        dailyTotals.containsKey(date)
+                                ? dailyTotals.get(date) : 0;
+
                 int unallocated =
                         dailyMinutes - importedMinutes;
 
@@ -155,12 +176,17 @@ public final class V2DataMigrator {
                 }
             }
 
+            ContentValues marker = new ContentValues();
+            marker.put("migration_key", MIGRATION_KEY);
+            marker.put("completed_at", System.currentTimeMillis());
+
+            db.insertOrThrow(
+                    "migration_log",
+                    null,
+                    marker
+            );
+
             db.setTransactionSuccessful();
-
-            migrationPrefs.edit()
-                    .putBoolean(MIGRATION_DONE, true)
-                    .commit();
-
             db.endTransaction();
 
             return true;
