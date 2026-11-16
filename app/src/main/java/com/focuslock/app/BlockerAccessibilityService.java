@@ -18,19 +18,13 @@ public class BlockerAccessibilityService extends AccessibilityService {
 
     @Override
     public void onAccessibilityEvent(AccessibilityEvent event) {
-        // Check if study session is active (remains true both while running AND while paused!)
         if (!StorageHelper.isSessionActive(this)) {
             return;
         }
 
         Set<String> blockedApps = StorageHelper.getBlockedApps(this);
-        if (blockedApps.isEmpty()) {
-            return;
-        }
-
         boolean blockedAppDetected = false;
 
-        // 1. Check the main app event
         if (event != null && event.getPackageName() != null) {
             String openedPackage = event.getPackageName().toString();
             if (isPackageBlocked(openedPackage, blockedApps)) {
@@ -38,7 +32,6 @@ public class BlockerAccessibilityService extends AccessibilityService {
             }
         }
 
-        // 2. Also scan all floating mini-players (Picture-in-Picture) and split-screen windows
         if (!blockedAppDetected) {
             List<AccessibilityWindowInfo> windows = getWindows();
             if (windows != null) {
@@ -62,14 +55,10 @@ public class BlockerAccessibilityService extends AccessibilityService {
             }
             lastBlockTimestamp = now;
 
-            // Force-pause any video or reel playing in the blocked app
             stopBlockedMedia();
-
-            // Press Back first to close any open video player so it cannot shrink into a mini-player
             performGlobalAction(GLOBAL_ACTION_BACK);
             performGlobalAction(GLOBAL_ACTION_HOME);
 
-            // Launch the full-screen red Focus Lock warning screen
             Intent blockIntent = new Intent(this, BlockedActivity.class);
             blockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(blockIntent);
@@ -81,6 +70,12 @@ public class BlockerAccessibilityService extends AccessibilityService {
         if (pkg.equals(getPackageName()) || pkg.equals("com.android.systemui")) {
             return false;
         }
+
+        // ANTI-CHEAT: Automatically block phone Settings and package installers during study time!
+        if (pkg.equals("com.android.settings") || pkg.contains("installer") || pkg.contains("packageinstaller")) {
+            return true;
+        }
+
         return blockedApps.contains(pkg);
     }
 
@@ -88,15 +83,9 @@ public class BlockerAccessibilityService extends AccessibilityService {
         try {
             AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             if (audioManager != null) {
-                audioManager.requestAudioFocus(
-                        null,
-                        AudioManager.STREAM_MUSIC,
-                        AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
-                );
-                KeyEvent downEvent = new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PAUSE);
-                audioManager.dispatchMediaKeyEvent(downEvent);
-                KeyEvent upEvent = new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PAUSE);
-                audioManager.dispatchMediaKeyEvent(upEvent);
+                audioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
+                audioManager.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PAUSE));
+                audioManager.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PAUSE));
             }
         } catch (Exception ignored) {
         }
@@ -104,6 +93,5 @@ public class BlockerAccessibilityService extends AccessibilityService {
 
     @Override
     public void onInterrupt() {
-        // Required by Android AccessibilityService
     }
 }
