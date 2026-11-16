@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="fl_background">#080D1A</color>
+    <color name="fl_surface">#111A2B</color>
+    <color name="fl_surface_alt">#19243A</color>
+    <color name="fl_cyan">#42D9F5</color>
+    <color name="fl_violet">#9B82FF</color>
+    <color name="fl_text_primary">#F3F6FF</color>
+    <color name="fl_text_secondary">#A6B4CC</color>
+    <color name="fl_success">#4ADE9A</color>
+    <color name="fl_warning">#FFC66D</color>
+    <color name="fl_error">#FF7185</color>
+    <color name="fl_border">#293650</color>
+</resources>
