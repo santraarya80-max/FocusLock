@@ -1,140 +1,89 @@
-package com.focuslock.app;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.Intent;
-import android.os.Handler;
-import android.os.IBinder;
-import android.os.Looper;
+package com.focuslock.app.tracking;
 
-public class TimerService extends Service {
+import android.content.Context;
+import android.content.SharedPreferences;
 
-    private static final String CHANNEL_ID = "FocusLockTimerChannelV2";
-    private static final int NOTIFICATION_ID = 1002;
+import com.focuslock.app.database.StudyRepository;
 
-    private final Handler timerHandler = new Handler(Looper.getMainLooper());
-    private boolean loopRunning = false;
-    private int pauseTimerCounter = 0; // Tracks 10-min max pause limit
+public final class V3SessionRecorder {
 
-    private final Runnable tickRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (!StorageHelper.isSessionActive(TimerService.this)) {
-                stopForeground(true);
-                stopSelf();
-                loopRunning = false;
-                return;
-            }
+    private static final String PREFS = "FocusLockV3SessionTracking";
+    private static final String KEY_START = "session_start";
+    private static final String KEY_SUBJECT = "session_subject";
+    private static final String KEY_DURATION = "session_duration";
+    private static final String KEY_RECORDED_START = "last_recorded_start";
 
-            long remainingSeconds;
-            boolean isPaused = StorageHelper.isSessionPaused(TimerService.this);
-
-            if (isPaused) {
-                pauseTimerCounter++;
-                // 10 minutes paused = 600 seconds. Auto-resume timer for safety!
-                if (pauseTimerCounter >= 600) {
-                    StorageHelper.setSessionPaused(TimerService.this, false);
-                    pauseTimerCounter = 0;
-                }
-                remainingSeconds = StorageHelper.getRemainingSeconds(TimerService.this);
-            } else {
-                pauseTimerCounter = 0;
-                remainingSeconds = StorageHelper.tickOneSecond(TimerService.this);
-            }
-
-            if (remainingSeconds <= 0L) {
-                stopForeground(true);
-                stopSelf();
-                loopRunning = false;
-                return;
-            }
-
-            updateNotification(remainingSeconds, isPaused);
-            timerHandler.postDelayed(this, 1000);
-        }
-    };
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        createSilentNotificationChannel();
+    private V3SessionRecorder() {
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!StorageHelper.isSessionActive(this)) {
-            stopSelf();
-            return START_NOT_STICKY;
-        }
+    public static void startSession(
+            Context context,
+            String subject,
+            int plannedMinutes
+    ) {
+        if (plannedMinutes <= 0) return;
 
-        long remaining = StorageHelper.getRemainingSeconds(this);
-        boolean paused = StorageHelper.isSessionPaused(this);
-        startForeground(NOTIFICATION_ID, buildNotification(remaining, paused));
-
-        if (!loopRunning) {
-            loopRunning = true;
-            timerHandler.postDelayed(tickRunnable, 1000);
-        }
-
-        return START_STICKY;
-    }
-
-    private void createSilentNotificationChannel() {
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                "Focus Lock 2.0 Timer",
-                NotificationManager.IMPORTANCE_LOW
-        );
-        channel.setDescription("Shows remaining study time & subject");
-        channel.setSound(null, null);
-        channel.enableVibration(false);
-
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        if (manager != null) {
-            manager.createNotificationChannel(channel);
-        }
-    }
-
-    private Notification buildNotification(long remainingSeconds, boolean isPaused) {
-        Intent openAppIntent = new Intent(this, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(
-                this, 0, openAppIntent,
-                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        SharedPreferences prefs = context.getSharedPreferences(
+                PREFS, Context.MODE_PRIVATE
         );
 
-        String subject = StorageHelper.getCurrentSubject(this);
-        String timeFormatted = StorageHelper.formatTimeMMSS(remainingSeconds);
-        String title = isPaused ? "Paused (" + subject + ")" : "Studying: " + subject;
-        String body = "Time Left: " + timeFormatted;
+        long startTime = System.currentTimeMillis();
 
-        return new Notification.Builder(this, CHANNEL_ID)
-                .setContentTitle(title)
-                .setContentText(body)
-                .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .build();
+        prefs.edit()
+                .putLong(KEY_START, startTime)
+                .putString(KEY_SUBJECT,
+                        subject == null || subject.trim().isEmpty()
+                                ? "General Study" : subject.trim())
+                .putInt(KEY_DURATION, plannedMinutes)
+                .apply();
     }
 
-    private void updateNotification(long remainingSeconds, boolean isPaused) {
-        NotificationManager manager = getSystemService(NotificationManager.class);
-        if (manager != null) {
-            manager.notify(NOTIFICATION_ID, buildNotification(remainingSeconds, isPaused));
+    public static void recordCompletedSession(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(
+                PREFS, Context.MODE_PRIVATE
+        );
+
+        long startTime = prefs.getLong(KEY_START, 0L);
+        int durationMinutes = prefs.getInt(KEY_DURATION, 0);
+
+        if (startTime <= 0L || durationMinutes <= 0) return;
+
+        if (prefs.getLong(KEY_RECORDED_START, 0L) == startTime) {
+            return;
         }
-    }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        timerHandler.removeCallbacks(tickRunnable);
-        loopRunning = false;
-    }
+        long endTime = System.currentTimeMillis();
 
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+        String subject = prefs.getString(
+                KEY_SUBJECT, "General Study"
+        );
+
+        StudyRepository repository = new StudyRepository(context);
+
+        try {
+            long result = repository.addStudySession(
+                    null,
+                    null,
+                    null,
+                    subject,
+                    startTime,
+                    endTime,
+                    durationMinutes,
+                    "Completed focus timer"
+            );
+
+            if (result != -1L) {
+                prefs.edit()
+                        .putLong(KEY_RECORDED_START, startTime)
+                        .remove(KEY_START)
+                        .remove(KEY_SUBJECT)
+                        .remove(KEY_DURATION)
+                        .apply();
+            }
+
+        } finally {
+            repository.close();
+        }
     }
 }
