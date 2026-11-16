@@ -12,11 +12,12 @@ import android.os.Looper;
 
 public class TimerService extends Service {
 
-    private static final String CHANNEL_ID = "FocusLockTimerChannel";
-    private static final int NOTIFICATION_ID = 1001;
+    private static final String CHANNEL_ID = "FocusLockTimerChannelV2";
+    private static final int NOTIFICATION_ID = 1002;
 
     private final Handler timerHandler = new Handler(Looper.getMainLooper());
     private boolean loopRunning = false;
+    private int pauseTimerCounter = 0; // Tracks 10-min max pause limit
 
     private final Runnable tickRunnable = new Runnable() {
         @Override
@@ -32,15 +33,19 @@ public class TimerService extends Service {
             boolean isPaused = StorageHelper.isSessionPaused(TimerService.this);
 
             if (isPaused) {
-                // Strict Pause: Do not subtract seconds, but keep notification & blocker active
+                pauseTimerCounter++;
+                // 10 minutes paused = 600 seconds. Auto-resume timer for safety!
+                if (pauseTimerCounter >= 600) {
+                    StorageHelper.setSessionPaused(TimerService.this, false);
+                    pauseTimerCounter = 0;
+                }
                 remainingSeconds = StorageHelper.getRemainingSeconds(TimerService.this);
             } else {
-                // Active study: Subtract 1 second and record study history
+                pauseTimerCounter = 0;
                 remainingSeconds = StorageHelper.tickOneSecond(TimerService.this);
             }
 
             if (remainingSeconds <= 0L) {
-                // Silent finish when timer reaches 00:00
                 stopForeground(true);
                 stopSelf();
                 loopRunning = false;
@@ -78,13 +83,12 @@ public class TimerService extends Service {
     }
 
     private void createSilentNotificationChannel() {
-        // IMPORTANCE_LOW guarantees a small, completely silent notification with no sound or pop-up
         NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
-                "Focus Lock Study Timer",
+                "Focus Lock 2.0 Timer",
                 NotificationManager.IMPORTANCE_LOW
         );
-        channel.setDescription("Shows remaining study time while Focus Lock is active");
+        channel.setDescription("Shows remaining study time & subject");
         channel.setSound(null, null);
         channel.enableVibration(false);
 
@@ -97,14 +101,13 @@ public class TimerService extends Service {
     private Notification buildNotification(long remainingSeconds, boolean isPaused) {
         Intent openAppIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(
-                this,
-                0,
-                openAppIntent,
+                this, 0, openAppIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
 
+        String subject = StorageHelper.getCurrentSubject(this);
         String timeFormatted = StorageHelper.formatTimeMMSS(remainingSeconds);
-        String title = isPaused ? "Focus Lock (Paused — Apps Locked)" : "Focus Lock Active";
+        String title = isPaused ? "Paused (" + subject + ")" : "Studying: " + subject;
         String body = "Time Left: " + timeFormatted;
 
         return new Notification.Builder(this, CHANNEL_ID)
