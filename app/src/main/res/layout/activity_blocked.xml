@@ -17,21 +17,50 @@
         android:textStyle="bold" />
 
     <TextView
+        android:id="@+id/tvBlockedSubject"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:background="#1E293B"
+        android:paddingLeft="14dp"
+        android:paddingTop="6dp"
+        android:paddingRight="14dp"
+        android:paddingBottom="6dp"
+        android:text="Current Focus: Studying"
+        android:textColor="#10B981"
+        android:textSize="15sp"
+        android:textStyle="bold" />
+
+    <TextView
         android:id="@+id/tvBlockedMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:gravity="center"
-        android:text="This distracting app is locked until your study timer reaches 00:00."
+        android:text="This app and phone settings are locked until your study timer reaches 00:00."
         android:textColor="#FFFFFF"
-        android:textSize="18sp" />
+        android:textSize="16sp" />
+
+    <!-- Motivational Quote Card -->
+    <TextView
+        android:id="@+id/tvMotivationalQuote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="#1E293B"
+        android:gravity="center"
+        android:padding="16dp"
+        android:text="Discipline is choosing between what you want now and what you want most."
+        android:textColor="#94A3B8"
+        android:textSize="15sp"
+        android:textStyle="italic" />
 
     <TextView
         android:id="@+id/tvBlockedRemaining"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="32dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="28dp"
         android:background="#1E293B"
         android:fontFamily="monospace"
         android:padding="16dp"
@@ -45,7 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:backgroundTint="#EF4444"
-        android:text="RETURN TO PHONE HOME SCREEN"
+        android:text="GET BACK TO STUDYING"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold" />
