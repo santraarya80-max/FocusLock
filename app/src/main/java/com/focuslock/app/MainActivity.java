@@ -19,6 +19,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.focuslock.app.tracking.V3SessionRecorder;
+import com.focuslock.app.database.V2DataMigrator;
 
 import java.util.Set;
 
@@ -56,6 +57,14 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (!V2DataMigrator.migrate(this)) {
+            Toast.makeText(
+                    this,
+                    "V2 data migration failed. Original data is preserved.",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
 
         tvStatusBadge = findViewById(R.id.tvStatusBadge);
         tvStreakBadge = findViewById(R.id.tvStreakBadge);
@@ -240,8 +249,6 @@ public class MainActivity extends Activity {
         }
 
         StorageHelper.startSession(this, minutes, subject);
-
-        // V3: Save the session details for the new study database.
         V3SessionRecorder.startSession(this, subject, minutes);
 
         Intent serviceIntent = new Intent(this, TimerService.class);
