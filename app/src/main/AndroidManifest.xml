@@ -2,7 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Permissions needed for Focus Lock -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission
@@ -14,9 +13,8 @@
         android:icon="@drawable/ic_launcher_lock"
         android:roundIcon="@drawable/ic_launcher_lock"
         android:label="Focus Lock"
-        android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
+        android:theme="@style/FocusLockTheme">
 
-        <!-- Screen 1: Home Screen -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -27,19 +25,16 @@
             </intent-filter>
         </activity>
 
-        <!-- Screen 2: Select Apps Screen -->
         <activity
             android:name=".AppSelectActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Screen 3: Study History Screen -->
         <activity
             android:name=".HistoryActivity"
             android:exported="false"
             android:screenOrientation="portrait" />
 
-        <!-- Screen 4: Full-Screen Block Screen -->
         <activity
             android:name=".BlockedActivity"
             android:exported="false"
@@ -47,13 +42,11 @@
             android:launchMode="singleInstance"
             android:screenOrientation="portrait" />
 
-        <!-- Background Timer & Small Notification Engine -->
         <service
             android:name=".TimerService"
             android:enabled="true"
             android:exported="false" />
 
-        <!-- App Blocker Accessibility Guard -->
         <service
             android:name=".BlockerAccessibilityService"
             android:enabled="true"
@@ -69,5 +62,4 @@
         </service>
 
     </application>
-
 </manifest>
