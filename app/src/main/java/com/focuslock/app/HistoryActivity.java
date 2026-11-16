@@ -20,11 +20,15 @@ public class HistoryActivity extends Activity {
         setContentView(R.layout.activity_history);
 
         TextView tvTotalStudyTime = findViewById(R.id.tvTotalStudyTime);
+        TextView tvSubjectBreakdown = findViewById(R.id.tvSubjectBreakdown);
         ListView listViewHistory = findViewById(R.id.listViewHistory);
         Button btnBackFromHistory = findViewById(R.id.btnBackFromHistory);
 
         int totalMinutes = StorageHelper.getTotalStudyMinutes(this);
-        tvTotalStudyTime.setText("Total All-Time Study: " + StorageHelper.formatMinutesReadable(totalMinutes));
+        int streak = StorageHelper.getStreakDays(this);
+        tvTotalStudyTime.setText("Total Study: " + StorageHelper.formatMinutesReadable(totalMinutes) + "  (🔥 Streak: " + streak + " Days)");
+
+        tvSubjectBreakdown.setText(StorageHelper.getSubjectBreakdownText(this));
 
         List<String> historyItems = StorageHelper.getStudyHistoryList(this);
 
@@ -39,7 +43,7 @@ public class HistoryActivity extends Activity {
                 TextView textView = view.findViewById(android.R.id.text1);
                 if (textView != null) {
                     textView.setTextColor(Color.WHITE);
-                    textView.setTextSize(16f);
+                    textView.setTextSize(15f);
                 }
                 return view;
             }
@@ -47,11 +51,6 @@ public class HistoryActivity extends Activity {
 
         listViewHistory.setAdapter(adapter);
 
-        btnBackFromHistory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+        btnBackFromHistory.setOnClickListener(v -> finish());
     }
 }
