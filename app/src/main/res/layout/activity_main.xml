@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -10,8 +11,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="20dp">
-
-        <!-- HEADER -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -54,8 +53,6 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- STATUS -->
-
         <TextView
             android:id="@+id/tvStatusBadge"
             android:layout_width="wrap_content"
@@ -67,8 +64,6 @@
             android:textColor="@color/fl_success"
             android:textSize="12sp"
             android:textStyle="bold" />
-
-        <!-- TIMER CARD -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -127,8 +122,6 @@
                 android:textColor="@color/fl_text_secondary"
                 android:textSize="12sp" />
         </LinearLayout>
-
-        <!-- STUDY SETUP -->
 
         <LinearLayout
             android:id="@+id/layoutSetupControls"
@@ -273,10 +266,7 @@
                 android:textColor="@color/fl_text_primary"
                 android:textColorHint="@color/fl_text_secondary"
                 android:textSize="18sp" />
-
         </LinearLayout>
-
-        <!-- START BUTTON -->
 
         <Button
             android:id="@+id/btnStartFocus"
@@ -300,8 +290,6 @@
             android:textSize="14sp"
             android:textStyle="bold"
             android:visibility="gone" />
-
-        <!-- DAILY PERFORMANCE -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -347,10 +335,7 @@
                 android:max="240"
                 android:progress="0"
                 android:progressTint="@color/fl_violet" />
-
         </LinearLayout>
-
-        <!-- FOCUS CONTROLS -->
 
         <TextView
             android:layout_width="wrap_content"
@@ -392,7 +377,34 @@
             android:textColor="@color/fl_text_primary"
             android:textSize="13sp" />
 
-        <!-- FOOTER -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="DATA & BACKUP"
+            android:textColor="@color/fl_text_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnExportBackup"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="@color/fl_surface_alt"
+            android:text="Export Backup"
+            android:textColor="@color/fl_text_primary"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/btnRestoreBackup"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="@color/fl_surface_alt"
+            android:text="Restore Backup"
+            android:textColor="@color/fl_text_primary"
+            android:textSize="13sp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -405,5 +417,4 @@
             android:textSize="10sp" />
 
     </LinearLayout>
-
 </ScrollView>
