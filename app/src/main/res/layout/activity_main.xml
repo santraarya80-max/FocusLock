@@ -1,305 +1,355 @@
+
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121826"
-    android:fillViewport="true">
+    android:background="#0B1120"
+    android:fillViewport="true"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_horizontal"
         android:orientation="vertical"
         android:padding="20dp">
 
-        <!-- Top Header Row: Title and Streak Badge -->
+        <!-- HEADER -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:fontFamily="sans-serif-medium"
-                android:text="FOCUS LOCK 2.0"
-                android:textColor="#FFFFFF"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="FOCUSLOCK"
+                    android:textColor="#FFFFFF"
+                    android:textSize="25sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:text="YOUR PERSONAL PRODUCTIVITY SYSTEM"
+                    android:textColor="#8190A8"
+                    android:textSize="10sp"
+                    android:letterSpacing="0.08" />
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvStreakBadge"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="#1E293B"
-                android:paddingLeft="12dp"
-                android:paddingTop="6dp"
-                android:paddingRight="12dp"
-                android:paddingBottom="6dp"
-                android:text="Streak: 0 Days"
-                android:textColor="#F59E0B"
-                android:textSize="14sp"
+                android:background="#202C42"
+                android:padding="12dp"
+                android:text="STREAK 0 DAYS"
+                android:textColor="#FBBF24"
+                android:textSize="12sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- Status Badge -->
+        <!-- STATUS -->
         <TextView
             android:id="@+id/tvStatusBadge"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="#1E293B"
-            android:paddingLeft="16dp"
-            android:paddingTop="6dp"
-            android:paddingRight="16dp"
-            android:paddingBottom="6dp"
-            android:text="Ready to Study"
-            android:textColor="#10B981"
-            android:textSize="14sp"
+            android:layout_marginTop="25dp"
+            android:background="#15372F"
+            android:paddingLeft="14dp"
+            android:paddingTop="8dp"
+            android:paddingRight="14dp"
+            android:paddingBottom="8dp"
+            android:text="READY TO FOCUS"
+            android:textColor="#4ADE80"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
-        <!-- Timer Card with Progress Bar -->
+        <!-- MAIN TIMER CARD -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:background="#1E293B"
+            android:layout_marginTop="14dp"
+            android:background="#172238"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="24dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CURRENT FOCUS SESSION"
+                android:textColor="#91A2BC"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.12" />
 
             <TextView
                 android:id="@+id/tvCurrentSubjectLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Subject: Maths"
-                android:textColor="#94A3B8"
-                android:textSize="15sp"
+                android:layout_marginTop="16dp"
+                android:text="Current Subject: Maths"
+                android:textColor="#CBD5E1"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvTimerDisplay"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="12dp"
-                android:fontFamily="monospace"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-light"
                 android:text="90:00"
                 android:textColor="#FFFFFF"
-                android:textSize="54sp"
+                android:textSize="64sp"
                 android:textStyle="bold" />
 
             <ProgressBar
                 android:id="@+id/progressBarTimerRing"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="10dp"
+                android:layout_height="7dp"
+                android:layout_marginTop="18dp"
                 android:max="100"
                 android:progress="100"
-                android:progressTint="#10B981" />
+                android:progressTint="#38BDF8"
+                android:progressBackgroundTint="#334155" />
 
             <TextView
                 android:id="@+id/tvPauseInfo"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="Strict Mode: Max 2 Pauses (10m auto-resume)"
-                android:textColor="#94A3B8"
+                android:layout_marginTop="13dp"
+                android:text="Your next productive session starts here"
+                android:textColor="#91A2BC"
                 android:textSize="12sp" />
         </LinearLayout>
 
-        <!-- Setup Controls (Hidden while study timer is active) -->
+        <!-- SESSION SETUP -->
         <LinearLayout
             android:id="@+id/layoutSetupControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="#1E293B"
+            android:layout_marginTop="22dp"
+            android:background="#172238"
             android:orientation="vertical"
-            android:padding="14dp">
+            android:padding="18dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:text="1. Choose Study Subject:"
-                android:textColor="#94A3B8"
-                android:textSize="13sp" />
+                android:text="CONFIGURE YOUR SESSION"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-            <!-- Quick Subject Buttons -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="SELECT SUBJECT"
+                android:textColor="#91A2BC"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="9dp"
                 android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btnSubjMaths"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="Maths"
                     android:textColor="#FFFFFF"
-                    android:textSize="11sp" />
+                    android:textSize="11sp"
+                    android:minWidth="0dp"
+                    android:padding="2dp" />
 
                 <Button
                     android:id="@+id/btnSubjPhysics"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="Physics"
                     android:textColor="#FFFFFF"
-                    android:textSize="11sp" />
+                    android:textSize="11sp"
+                    android:minWidth="0dp"
+                    android:padding="2dp" />
 
                 <Button
                     android:id="@+id/btnSubjChem"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_height="46dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="Chem"
                     android:textColor="#FFFFFF"
-                    android:textSize="11sp" />
+                    android:textSize="11sp"
+                    android:minWidth="0dp"
+                    android:padding="2dp" />
 
                 <Button
                     android:id="@+id/btnSubjOther"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="46dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="Revision"
                     android:textColor="#FFFFFF"
-                    android:textSize="11sp" />
+                    android:textSize="10sp"
+                    android:minWidth="0dp"
+                    android:padding="2dp" />
             </LinearLayout>
 
             <EditText
                 android:id="@+id/etSubjectInput"
                 android:layout_width="match_parent"
-                android:layout_height="44dp"
-                android:layout_marginBottom="12dp"
-                android:background="#121826"
-                android:gravity="center"
-                android:hint="Or type custom subject"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:background="#0B1120"
+                android:gravity="center_vertical"
+                android:paddingLeft="14dp"
+                android:paddingRight="14dp"
+                android:hint="Enter a custom subject"
                 android:inputType="textCapWords"
                 android:text="Maths"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#94A3B8"
-                android:textSize="15sp" />
+                android:textColorHint="#64748B"
+                android:textSize="14sp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:text="2. Set Study Time (Minutes):"
-                android:textColor="#94A3B8"
-                android:textSize="13sp" />
+                android:layout_marginTop="20dp"
+                android:text="SESSION DURATION"
+                android:textColor="#91A2BC"
+                android:textSize="11sp"
+                android:textStyle="bold" />
 
-            <!-- Quick Timer Preset Buttons -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="9dp"
                 android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btnPreset30"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="30m"
                     android:textColor="#FFFFFF"
-                    android:textSize="12sp" />
+                    android:minWidth="0dp" />
 
                 <Button
                     android:id="@+id/btnPreset60"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="60m"
                     android:textColor="#FFFFFF"
-                    android:textSize="12sp" />
+                    android:minWidth="0dp" />
 
                 <Button
                     android:id="@+id/btnPreset90"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_height="44dp"
+                    android:layout_marginEnd="5dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="90m"
                     android:textColor="#FFFFFF"
-                    android:textSize="12sp" />
+                    android:minWidth="0dp" />
 
                 <Button
                     android:id="@+id/btnPreset120"
                     android:layout_width="0dp"
-                    android:layout_height="40dp"
+                    android:layout_height="44dp"
                     android:layout_weight="1"
-                    android:backgroundTint="#334155"
+                    android:backgroundTint="#263A56"
                     android:text="120m"
                     android:textColor="#FFFFFF"
-                    android:textSize="12sp" />
+                    android:minWidth="0dp" />
             </LinearLayout>
 
             <EditText
                 android:id="@+id/etMinutesInput"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="#121826"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:background="#0B1120"
                 android:gravity="center"
-                android:hint="Enter minutes (e.g. 90)"
+                android:hint="Enter duration in minutes"
                 android:inputType="number"
                 android:text="90"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#94A3B8"
+                android:textColorHint="#64748B"
                 android:textSize="18sp" />
         </LinearLayout>
 
-        <!-- Start Focus Button -->
+        <!-- START SESSION -->
         <Button
             android:id="@+id/btnStartFocus"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="12dp"
-            android:backgroundTint="#10B981"
-            android:text="START FOCUS LOCK"
+            android:layout_height="58dp"
+            android:layout_marginTop="16dp"
+            android:backgroundTint="#0EA5E9"
+            android:text="START FOCUS SESSION"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold" />
 
-        <!-- Strict Pause / Resume Button -->
         <Button
             android:id="@+id/btnPauseResume"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginBottom="12dp"
-            android:backgroundTint="#F59E0B"
-            android:text="PAUSE TIMER (APPS STAY LOCKED)"
+            android:layout_height="54dp"
+            android:layout_marginTop="10dp"
+            android:backgroundTint="#D97706"
+            android:text="PAUSE / RESUME SESSION"
             android:textColor="#FFFFFF"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textStyle="bold"
             android:visibility="gone" />
 
-        <!-- Daily Goal Progress & Today's Study Time Card -->
+        <!-- DAILY PERFORMANCE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="TODAY'S PERFORMANCE"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:background="#1E293B"
+            android:layout_marginTop="12dp"
+            android:background="#172238"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="18dp">
 
             <TextView
                 android:id="@+id/tvTodayStudyTime"
@@ -307,58 +357,80 @@
                 android:layout_height="wrap_content"
                 android:text="Today's Study Time: 0 mins"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvGoalProgressText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="8dp"
-                android:text="Daily Goal (4 hrs): 0%"
-                android:textColor="#94A3B8"
+                android:layout_marginTop="9dp"
+                android:text="Daily Goal: 0% completed"
+                android:textColor="#91A2BC"
                 android:textSize="13sp" />
 
             <ProgressBar
                 android:id="@+id/progressBarDailyGoal"
                 style="?android:attr/progressBarStyleHorizontal"
                 android:layout_width="match_parent"
-                android:layout_height="10dp"
+                android:layout_height="8dp"
+                android:layout_marginTop="12dp"
                 android:max="240"
                 android:progress="0"
-                android:progressTint="#10B981" />
+                android:progressTint="#38BDF8"
+                android:progressBackgroundTint="#334155" />
         </LinearLayout>
 
-        <!-- Permission, App Selection & History Buttons -->
+        <!-- APP BLOCKING -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="FOCUS PROTECTION"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
         <Button
             android:id="@+id/btnEnableBlocker"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="8dp"
-            android:backgroundTint="#334155"
-            android:text="Blocker Permission: Tap to Enable"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:backgroundTint="#263A56"
+            android:text="Manage Blocker Permission"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
         <Button
             android:id="@+id/btnSelectApps"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:layout_marginBottom="8dp"
-            android:backgroundTint="#334155"
-            android:text="Select Distracting Apps to Block"
+            android:layout_height="50dp"
+            android:layout_marginTop="8dp"
+            android:backgroundTint="#263A56"
+            android:text="Manage Blocked Apps"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
+
+        <!-- HISTORY -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:text="YOUR PROGRESS"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnViewHistory"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:backgroundTint="#334155"
-            android:text="View Study History and Subjects"
+            android:layout_height="50dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="24dp"
+            android:backgroundTint="#263A56"
+            android:text="View Study Analytics"
             android:textColor="#FFFFFF"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
     </LinearLayout>
 </ScrollView>
