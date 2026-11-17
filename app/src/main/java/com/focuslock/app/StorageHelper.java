@@ -1,9 +1,11 @@
+
 package com.focuslock.app;
 
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.SystemClock;
 import android.provider.Settings;
+import android.util.Base64;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -29,13 +31,16 @@ public class StorageHelper {
     private static final String KEY_UNRECORDED_SECONDS = "unrecorded_seconds";
     private static final String KEY_PAUSE_COUNT = "pause_count";
     private static final String KEY_CURRENT_SUBJECT = "current_subject";
+    private static final String KEY_CURRENT_CHAPTER = "current_chapter";
+    private static final String KEY_CURRENT_SESSION_TYPE = "current_session_type";
 
     private static final String HISTORY_PREFIX = "history_";
     private static final String SUBJECT_PREFIX = "subject_";
+    private static final String CHAPTER_TIME_PREFIX = "chapter_time_";
+
     private static final String KEY_LAST_STUDY_DATE = "last_study_date";
     private static final String KEY_STREAK_DAYS = "streak_days";
 
-    // New timer recovery data. Existing study data is not replaced.
     private static final String KEY_LAST_TICK_ELAPSED = "timer_last_tick_elapsed";
     private static final String KEY_PAUSE_STARTED_ELAPSED = "timer_pause_started_elapsed";
     private static final String KEY_TIMER_BOOT_COUNT = "timer_boot_count";
@@ -59,6 +64,26 @@ public class StorageHelper {
         } catch (Exception e) {
             return -1;
         }
+    }
+
+    private static String encodeKeyPart(String value) {
+        return Base64.encodeToString(
+                value.getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                Base64.URL_SAFE | Base64.NO_WRAP | Base64.NO_PADDING
+        );
+    }
+
+    private static String chapterTimeKey(
+            String date,
+            String subject,
+            String chapter
+    ) {
+        return CHAPTER_TIME_PREFIX
+                + encodeKeyPart(subject)
+                + "_"
+                + encodeKeyPart(chapter)
+                + "_"
+                + date;
     }
 
     public static void saveBlockedApps(
@@ -86,14 +111,43 @@ public class StorageHelper {
         return new HashSet<>(saved);
     }
 
+    // Compatibility with existing callers.
     public static void startSession(
             Context context,
             int minutes,
             String subject) {
 
+        startSession(
+                context,
+                minutes,
+                subject,
+                "",
+                "Self Study"
+        );
+    }
+
+    public static void startSession(
+            Context context,
+            int minutes,
+            String subject,
+            String chapter,
+            String sessionType) {
+
         long totalSeconds = minutes * 60L;
         long now = SystemClock.elapsedRealtime();
         int bootCount = getCurrentBootCount(context);
+
+        if (subject == null || subject.trim().isEmpty()) {
+            subject = "General Study";
+        }
+
+        if (chapter == null) {
+            chapter = "";
+        }
+
+        if (sessionType == null || sessionType.trim().isEmpty()) {
+            sessionType = "Self Study";
+        }
 
         getPrefs(context).edit()
                 .putBoolean(KEY_SESSION_ACTIVE, true)
@@ -102,7 +156,9 @@ public class StorageHelper {
                 .putLong(KEY_TOTAL_SESSION_SECONDS, totalSeconds)
                 .putInt(KEY_UNRECORDED_SECONDS, 0)
                 .putInt(KEY_PAUSE_COUNT, 0)
-                .putString(KEY_CURRENT_SUBJECT, subject)
+                .putString(KEY_CURRENT_SUBJECT, subject.trim())
+                .putString(KEY_CURRENT_CHAPTER, chapter.trim())
+                .putString(KEY_CURRENT_SESSION_TYPE, sessionType.trim())
                 .putLong(KEY_LAST_TICK_ELAPSED, now)
                 .putLong(KEY_PAUSE_STARTED_ELAPSED, 0L)
                 .putInt(KEY_TIMER_BOOT_COUNT, bootCount)
@@ -170,6 +226,20 @@ public class StorageHelper {
         );
     }
 
+    public static String getCurrentChapter(Context context) {
+        return getPrefs(context).getString(
+                KEY_CURRENT_CHAPTER,
+                ""
+        );
+    }
+
+    public static String getCurrentSessionType(Context context) {
+        return getPrefs(context).getString(
+                KEY_CURRENT_SESSION_TYPE,
+                "Self Study"
+        );
+    }
+
     public static long getRemainingSeconds(Context context) {
         return Math.max(
                 0L,
@@ -188,7 +258,6 @@ public class StorageHelper {
                 0L
         );
 
-        // Compatibility with older saved sessions.
         if (savedTotal <= 0L && isSessionActive(context)) {
             return getRemainingSeconds(context);
         }
@@ -198,9 +267,7 @@ public class StorageHelper {
 
     /**
      * Synchronises the saved timer with Android's monotonic clock.
-     *
-     * This works even if the service was temporarily stopped.
-     * Time spent paused is not deducted from the study timer.
+     * Records completed minutes against the current subject and chapter.
      */
     public static synchronized long syncSession(Context context) {
 
@@ -267,7 +334,6 @@ public class StorageHelper {
 
             recovery.apply();
 
-            // Do not guess how much time passed while the phone was off.
             return remaining;
         }
 
@@ -292,7 +358,6 @@ public class StorageHelper {
                 return remaining;
             }
 
-            // Automatically resume after the ten-minute pause limit.
             long automaticResumeTime =
                     pauseStarted + MAX_PAUSE_DURATION_MS;
 
@@ -328,7 +393,6 @@ public class StorageHelper {
         long updatedLastTick =
                 lastTick + (elapsedSeconds * 1000L);
 
-        // Never move the saved clock beyond the current clock.
         updatedLastTick = Math.min(updatedLastTick, now);
 
         int unrecorded = prefs.getInt(
@@ -379,6 +443,27 @@ public class StorageHelper {
                     subjectKey,
                     subjectMinutes + (int) completedMinutes
             );
+
+            String chapter = getCurrentChapter(context);
+
+            if (!chapter.trim().isEmpty()) {
+
+                String chapterKey = chapterTimeKey(
+                        todayDate,
+                        subject,
+                        chapter
+                );
+
+                int chapterMinutes = prefs.getInt(
+                        chapterKey,
+                        0
+                );
+
+                editor.putInt(
+                        chapterKey,
+                        chapterMinutes + (int) completedMinutes
+                );
+            }
         }
 
         editor.apply();
@@ -499,6 +584,54 @@ public class StorageHelper {
         }
 
         return total;
+    }
+
+    public static int getChapterStudyMinutes(
+            Context context,
+            String subject,
+            String chapter
+    ) {
+        if (subject == null || chapter == null) {
+            return 0;
+        }
+
+        String prefix = CHAPTER_TIME_PREFIX
+                + encodeKeyPart(subject)
+                + "_"
+                + encodeKeyPart(chapter)
+                + "_";
+
+        Map<String, ?> allEntries = getPrefs(context).getAll();
+
+        int total = 0;
+
+        for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
+            if (entry.getKey().startsWith(prefix)
+                    && entry.getValue() instanceof Integer) {
+                total += (Integer) entry.getValue();
+            }
+        }
+
+        return total;
+    }
+
+    public static int getTodayChapterStudyMinutes(
+            Context context,
+            String subject,
+            String chapter
+    ) {
+        if (subject == null || chapter == null) {
+            return 0;
+        }
+
+        return getPrefs(context).getInt(
+                chapterTimeKey(
+                        getTodayDateString(),
+                        subject,
+                        chapter
+                ),
+                0
+        );
     }
 
     public static String getSubjectBreakdownText(Context context) {
@@ -638,4 +771,3 @@ public class StorageHelper {
                 + " mins";
     }
 }
-
