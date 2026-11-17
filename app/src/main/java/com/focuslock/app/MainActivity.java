@@ -1,3 +1,4 @@
+
 package com.focuslock.app;
 
 import android.app.Activity;
@@ -830,4 +831,3 @@ public class MainActivity extends Activity {
         super.onBackPressed();
     }
 }
-
