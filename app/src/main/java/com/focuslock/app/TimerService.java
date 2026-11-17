@@ -103,7 +103,7 @@ public class TimerService extends Service {
                 );
 
         channel.setDescription(
-                "Shows remaining study time and subject"
+                "Shows remaining study time, subject, chapter and session type"
         );
 
         channel.setSound(null, null);
@@ -136,19 +136,38 @@ public class TimerService extends Service {
         String subject =
                 StorageHelper.getCurrentSubject(this);
 
+        String chapter =
+                StorageHelper.getCurrentChapter(this);
+
+        String sessionType =
+                StorageHelper.getCurrentSessionType(this);
+
         String formattedTime =
                 StorageHelper.formatTimeMMSS(remainingSeconds);
 
         String title = isPaused
-                ? "Paused (" + subject + ")"
+                ? "Paused: " + subject
                 : "Studying: " + subject;
 
-        String body =
-                "Time Left: " + formattedTime;
+        StringBuilder details = new StringBuilder();
+
+        if (chapter != null && !chapter.trim().isEmpty()) {
+            details.append(chapter).append(" • ");
+        }
+
+        if (sessionType != null && !sessionType.trim().isEmpty()) {
+            details.append(sessionType).append(" • ");
+        }
+
+        details.append("Time left: ").append(formattedTime);
 
         return new Notification.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
-                .setContentText(body)
+                .setContentText(details.toString())
+                .setStyle(
+                        new Notification.BigTextStyle()
+                                .bigText(details.toString())
+                )
                 .setSmallIcon(android.R.drawable.ic_lock_idle_lock)
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
