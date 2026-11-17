@@ -1,3 +1,4 @@
+
 package com.focuslock.app;
 
 import android.app.Activity;
@@ -295,7 +296,7 @@ public class MainActivity extends Activity {
                 "Coming soon", null);
 
         addDrawerItem(menuItems, "▣", "Subjects & Chapters",
-                "Coming soon", null);
+                "Available", this::openSubjects);
 
         addDrawerItem(menuItems, "↻", "Revision Tracker",
                 "Coming soon", null);
@@ -434,6 +435,15 @@ public class MainActivity extends Activity {
         startActivity(new Intent(
                 this,
                 HistoryActivity.class
+        ));
+    }
+
+    private void openSubjects() {
+        closeDrawer();
+
+        startActivity(new Intent(
+                this,
+                SubjectActivity.class
         ));
     }
 
@@ -844,4 +854,3 @@ public class MainActivity extends Activity {
         super.onBackPressed();
     }
 }
-
