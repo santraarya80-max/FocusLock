@@ -2,6 +2,7 @@
 package com.focuslock.app;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -24,6 +25,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class MainActivity extends Activity {
@@ -49,6 +52,13 @@ public class MainActivity extends Activity {
     private Button btnEnableBlocker;
     private Button btnSelectApps;
     private Button btnViewHistory;
+
+    private Button btnChooseSubjectChapter;
+    private Button btnChooseSessionType;
+
+    private String selectedChapter = "";
+    private String chapterSubject = "";
+    private String selectedSessionType = "Self Study";
 
     private PopupWindow navigationDrawer;
 
@@ -94,6 +104,7 @@ public class MainActivity extends Activity {
         btnViewHistory = findViewById(R.id.btnViewHistory);
 
         addNavigationButton();
+        addSessionSelectionButtons();
 
         if (Build.VERSION.SDK_INT >= 33) {
             if (checkSelfPermission(
@@ -110,20 +121,16 @@ public class MainActivity extends Activity {
         }
 
         findViewById(R.id.btnSubjMaths)
-                .setOnClickListener(v ->
-                        etSubjectInput.setText("Maths"));
+                .setOnClickListener(v -> setQuickSubject("Maths"));
 
         findViewById(R.id.btnSubjPhysics)
-                .setOnClickListener(v ->
-                        etSubjectInput.setText("Physics"));
+                .setOnClickListener(v -> setQuickSubject("Physics"));
 
         findViewById(R.id.btnSubjChem)
-                .setOnClickListener(v ->
-                        etSubjectInput.setText("Chem"));
+                .setOnClickListener(v -> setQuickSubject("Chem"));
 
         findViewById(R.id.btnSubjOther)
-                .setOnClickListener(v ->
-                        etSubjectInput.setText("Revision"));
+                .setOnClickListener(v -> setQuickSubject("Revision"));
 
         findViewById(R.id.btnPreset30)
                 .setOnClickListener(v ->
@@ -178,6 +185,175 @@ public class MainActivity extends Activity {
 
         btnViewHistory.setOnClickListener(v ->
                 openAnalytics());
+    }
+
+    private void addSessionSelectionButtons() {
+
+        ViewGroup parent = (ViewGroup) etSubjectInput.getParent();
+
+        btnChooseSubjectChapter = new Button(this);
+        btnChooseSubjectChapter.setText("Choose saved subject & chapter");
+        btnChooseSubjectChapter.setTextColor(Color.WHITE);
+        btnChooseSubjectChapter.setTextSize(12);
+        btnChooseSubjectChapter.setAllCaps(false);
+        btnChooseSubjectChapter.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(
+                        Color.rgb(23, 99, 76)));
+
+        btnChooseSessionType = new Button(this);
+        btnChooseSessionType.setText("Session type: Self Study");
+        btnChooseSessionType.setTextColor(Color.WHITE);
+        btnChooseSessionType.setTextSize(12);
+        btnChooseSessionType.setAllCaps(false);
+        btnChooseSessionType.setBackgroundTintList(
+                android.content.res.ColorStateList.valueOf(
+                        Color.rgb(23, 99, 76)));
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        dp(48));
+
+        params.topMargin = dp(8);
+
+        int insertAt = parent.indexOfChild(etSubjectInput) + 1;
+
+        parent.addView(btnChooseSubjectChapter, insertAt, params);
+        parent.addView(
+                btnChooseSessionType,
+                insertAt + 1,
+                new LinearLayout.LayoutParams(params));
+
+        btnChooseSubjectChapter.setOnClickListener(
+                v -> showSavedSubjectPicker());
+
+        btnChooseSessionType.setOnClickListener(
+                v -> showSessionTypePicker());
+    }
+
+    private void setQuickSubject(String subject) {
+        etSubjectInput.setText(subject);
+        selectedChapter = "";
+        chapterSubject = "";
+        updateSelectionButtonLabels();
+    }
+
+    private void updateSelectionButtonLabels() {
+
+        if (btnChooseSubjectChapter != null) {
+            if (selectedChapter.isEmpty()) {
+                btnChooseSubjectChapter.setText(
+                        "Choose saved subject & chapter");
+            } else {
+                btnChooseSubjectChapter.setText(
+                        "Chapter: " + selectedChapter);
+            }
+        }
+
+        if (btnChooseSessionType != null) {
+            btnChooseSessionType.setText(
+                    "Session type: " + selectedSessionType);
+        }
+    }
+
+    private void showSavedSubjectPicker() {
+
+        List<String> subjects =
+                SubjectStorage.getSubjects(this);
+
+        if (subjects.isEmpty()) {
+            new AlertDialog.Builder(this)
+                    .setTitle("No saved subjects")
+                    .setMessage(
+                            "Add subjects and chapters first. "
+                                    + "You can still use a manually entered subject.")
+                    .setPositiveButton(
+                            "Open Subjects",
+                            (dialog, which) -> openSubjects())
+                    .setNegativeButton("Cancel", null)
+                    .show();
+            return;
+        }
+
+        String[] options = subjects.toArray(new String[0]);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Choose a subject")
+                .setItems(options, (dialog, which) -> {
+                    String subject = subjects.get(which);
+
+                    etSubjectInput.setText(subject);
+                    chapterSubject = subject;
+                    selectedChapter = "";
+
+                    showChapterPicker(subject);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showChapterPicker(String subject) {
+
+        List<String> chapters =
+                SubjectStorage.getChapters(this, subject);
+
+        if (chapters.isEmpty()) {
+            selectedChapter = "";
+            chapterSubject = subject;
+            updateSelectionButtonLabels();
+
+            Toast.makeText(
+                    this,
+                    "No chapters saved for " + subject
+                            + ". This session will be recorded by subject only.",
+                    Toast.LENGTH_LONG
+            ).show();
+            return;
+        }
+
+        List<String> options = new ArrayList<>();
+        options.add("No chapter selected");
+        options.addAll(chapters);
+
+        String[] displayOptions =
+                options.toArray(new String[0]);
+
+        new AlertDialog.Builder(this)
+                .setTitle("Choose a chapter — " + subject)
+                .setItems(displayOptions, (dialog, which) -> {
+                    chapterSubject = subject;
+
+                    if (which == 0) {
+                        selectedChapter = "";
+                    } else {
+                        selectedChapter = chapters.get(which - 1);
+                    }
+
+                    updateSelectionButtonLabels();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void showSessionTypePicker() {
+
+        String[] types = {
+                "New Learning",
+                "Question Practice",
+                "Revision",
+                "PYQ Practice",
+                "Mock Test",
+                "Self Study"
+        };
+
+        new AlertDialog.Builder(this)
+                .setTitle("Choose session type")
+                .setItems(types, (dialog, which) -> {
+                    selectedSessionType = types[which];
+                    updateSelectionButtonLabels();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
     }
 
     private void addNavigationButton() {
@@ -474,11 +650,8 @@ public class MainActivity extends Activity {
         boolean wasPaused =
                 StorageHelper.isSessionPaused(this);
 
-        // Account for elapsed time before changing pause state.
         StorageHelper.syncSession(this);
 
-        // If the ten-minute pause limit expired,
-        // the timer has already resumed automatically.
         if (wasPaused
                 && !StorageHelper.isSessionPaused(this)) {
 
@@ -567,10 +740,22 @@ public class MainActivity extends Activity {
             return;
         }
 
+        String chapter = "";
+
+        if (subject.equalsIgnoreCase(chapterSubject)) {
+            chapter = selectedChapter;
+        } else {
+            selectedChapter = "";
+            chapterSubject = "";
+            updateSelectionButtonLabels();
+        }
+
         StorageHelper.startSession(
                 this,
                 minutes,
-                subject
+                subject,
+                chapter,
+                selectedSessionType
         );
 
         Intent serviceIntent =
@@ -597,7 +782,6 @@ public class MainActivity extends Activity {
 
     private void updateUI() {
 
-        // Keep the displayed timer and saved study time in sync.
         StorageHelper.syncSession(this);
 
         int todayMins =
@@ -652,9 +836,23 @@ public class MainActivity extends Activity {
             String subject =
                     StorageHelper.getCurrentSubject(this);
 
-            tvCurrentSubjectLabel.setText(
-                    "Current Subject: " + subject);
+            String chapter =
+                    StorageHelper.getCurrentChapter(this);
 
+            String sessionType =
+                    StorageHelper.getCurrentSessionType(this);
+
+            StringBuilder sessionLabel =
+                    new StringBuilder("Current Subject: ")
+                            .append(subject);
+
+            if (!TextUtils.isEmpty(chapter)) {
+                sessionLabel.append("\nChapter: ").append(chapter);
+            }
+
+            sessionLabel.append("\nSession: ").append(sessionType);
+
+            tvCurrentSubjectLabel.setText(sessionLabel.toString());
             tvCurrentSubjectLabel.setVisibility(View.VISIBLE);
 
             long remaining =
@@ -824,7 +1022,6 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
-        // Recover elapsed time before restarting the foreground service.
         StorageHelper.syncSession(this);
 
         if (StorageHelper.isSessionActive(this)) {
