@@ -1,4 +1,3 @@
-
 package com.focuslock.app;
 
 import android.app.Activity;
@@ -462,6 +461,27 @@ public class MainActivity extends Activity {
             return;
         }
 
+        boolean wasPaused =
+                StorageHelper.isSessionPaused(this);
+
+        // Account for elapsed time before changing pause state.
+        StorageHelper.syncSession(this);
+
+        // If the ten-minute pause limit expired,
+        // the timer has already resumed automatically.
+        if (wasPaused
+                && !StorageHelper.isSessionPaused(this)) {
+
+            Toast.makeText(
+                    this,
+                    "The 10-minute pause limit expired. Your timer has resumed.",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            updateUI();
+            return;
+        }
+
         boolean currentlyPaused =
                 StorageHelper.isSessionPaused(this);
 
@@ -566,6 +586,9 @@ public class MainActivity extends Activity {
     }
 
     private void updateUI() {
+
+        // Keep the displayed timer and saved study time in sync.
+        StorageHelper.syncSession(this);
 
         int todayMins =
                 StorageHelper.getTodayStudyMinutes(this);
@@ -791,6 +814,9 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
 
+        // Recover elapsed time before restarting the foreground service.
+        StorageHelper.syncSession(this);
+
         if (StorageHelper.isSessionActive(this)) {
             startForegroundService(
                     new Intent(this, TimerService.class));
@@ -818,3 +844,4 @@ public class MainActivity extends Activity {
         super.onBackPressed();
     }
 }
+
