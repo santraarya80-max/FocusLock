@@ -1,3 +1,4 @@
+
 package com.focuslock.app;
 
 import android.content.Context;
@@ -21,6 +22,7 @@ public class StorageHelper {
     private static final String KEY_SESSION_ACTIVE = "session_active";
     private static final String KEY_SESSION_PAUSED = "session_paused";
     private static final String KEY_REMAINING_SECONDS = "remaining_seconds";
+    private static final String KEY_TOTAL_SESSION_SECONDS = "total_session_seconds";
     private static final String KEY_UNRECORDED_SECONDS = "unrecorded_seconds";
     private static final String KEY_PAUSE_COUNT = "pause_count";
     private static final String KEY_CURRENT_SUBJECT = "current_subject";
@@ -53,6 +55,7 @@ public class StorageHelper {
                 .putBoolean(KEY_SESSION_ACTIVE, true)
                 .putBoolean(KEY_SESSION_PAUSED, false)
                 .putLong(KEY_REMAINING_SECONDS, totalSeconds)
+                .putLong(KEY_TOTAL_SESSION_SECONDS, totalSeconds)
                 .putInt(KEY_UNRECORDED_SECONDS, 0)
                 .putInt(KEY_PAUSE_COUNT, 0)
                 .putString(KEY_CURRENT_SUBJECT, subject)
@@ -89,6 +92,18 @@ public class StorageHelper {
 
     public static long getRemainingSeconds(Context context) {
         return Math.max(0L, getPrefs(context).getLong(KEY_REMAINING_SECONDS, 0L));
+    }
+
+    public static long getTotalSessionSeconds(Context context) {
+        SharedPreferences prefs = getPrefs(context);
+        long savedTotal = prefs.getLong(KEY_TOTAL_SESSION_SECONDS, 0L);
+
+        // Compatibility with sessions saved before total duration tracking existed.
+        if (savedTotal <= 0L && isSessionActive(context)) {
+            return getRemainingSeconds(context);
+        }
+
+        return Math.max(0L, savedTotal);
     }
 
     public static long tickOneSecond(Context context) {
@@ -171,6 +186,7 @@ public class StorageHelper {
                 .putBoolean(KEY_SESSION_ACTIVE, false)
                 .putBoolean(KEY_SESSION_PAUSED, false)
                 .putLong(KEY_REMAINING_SECONDS, 0L)
+                .putLong(KEY_TOTAL_SESSION_SECONDS, 0L)
                 .putInt(KEY_UNRECORDED_SECONDS, 0)
                 .putInt(KEY_PAUSE_COUNT, 0)
                 .apply();
