@@ -43,6 +43,12 @@
             android:exported="false"
             android:screenOrientation="portrait" />
 
+        <!-- Subjects and chapters -->
+        <activity
+            android:name=".SubjectActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
         <!-- Blocking screen -->
         <activity
             android:name=".BlockedActivity"
