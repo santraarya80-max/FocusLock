@@ -1,10 +1,7 @@
 package com.focuslock.app;
 
 import android.accessibilityservice.AccessibilityService;
-import android.content.Context;
 import android.content.Intent;
-import android.media.AudioManager;
-import android.view.KeyEvent;
 import android.view.accessibility.AccessibilityEvent;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.accessibility.AccessibilityWindowInfo;
@@ -27,6 +24,7 @@ public class BlockerAccessibilityService extends AccessibilityService {
 
         if (event != null && event.getPackageName() != null) {
             String openedPackage = event.getPackageName().toString();
+
             if (isPackageBlocked(openedPackage, blockedApps)) {
                 blockedAppDetected = true;
             }
@@ -34,12 +32,20 @@ public class BlockerAccessibilityService extends AccessibilityService {
 
         if (!blockedAppDetected) {
             List<AccessibilityWindowInfo> windows = getWindows();
+
             if (windows != null) {
                 for (AccessibilityWindowInfo window : windows) {
+                    if (window == null) {
+                        continue;
+                    }
+
                     AccessibilityNodeInfo root = window.getRoot();
+
                     if (root != null && root.getPackageName() != null) {
-                        String windowPkg = root.getPackageName().toString();
-                        if (isPackageBlocked(windowPkg, blockedApps)) {
+                        String windowPackage =
+                                root.getPackageName().toString();
+
+                        if (isPackageBlocked(windowPackage, blockedApps)) {
                             blockedAppDetected = true;
                             break;
                         }
@@ -48,50 +54,81 @@ public class BlockerAccessibilityService extends AccessibilityService {
             }
         }
 
-        if (blockedAppDetected) {
-            long now = System.currentTimeMillis();
-            if (now - lastBlockTimestamp < 400L) {
-                return;
-            }
-            lastBlockTimestamp = now;
-
-            stopBlockedMedia();
-            performGlobalAction(GLOBAL_ACTION_BACK);
-            performGlobalAction(GLOBAL_ACTION_HOME);
-
-            Intent blockIntent = new Intent(this, BlockedActivity.class);
-            blockIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(blockIntent);
+        if (!blockedAppDetected) {
+            return;
         }
+
+        long now = System.currentTimeMillis();
+
+        if (now - lastBlockTimestamp < 400L) {
+            return;
+        }
+
+        lastBlockTimestamp = now;
+
+        performGlobalAction(GLOBAL_ACTION_BACK);
+        performGlobalAction(GLOBAL_ACTION_HOME);
+
+        Intent blockIntent = new Intent(this, BlockedActivity.class);
+        blockIntent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_CLEAR_TOP
+        );
+
+        startActivity(blockIntent);
     }
 
-    private boolean isPackageBlocked(String pkg, Set<String> blockedApps) {
-        if (pkg == null) return false;
-        if (pkg.equals(getPackageName()) || pkg.equals("com.android.systemui")) {
+    private boolean isPackageBlocked(
+            String packageName,
+            Set<String> blockedApps) {
+
+        if (packageName == null || blockedApps == null) {
             return false;
         }
 
-        // ANTI-CHEAT: Automatically block phone Settings and package installers during study time!
-        if (pkg.equals("com.android.settings") || pkg.contains("installer") || pkg.contains("packageinstaller")) {
+        // Never block FocusLock or essential Android system functions.
+        if (isProtectedPackage(packageName)) {
+            return false;
+        }
+
+        return blockedApps.contains(packageName);
+    }
+
+    private boolean isProtectedPackage(String packageName) {
+
+        if (packageName.equals(getPackageName())) {
             return true;
         }
 
-        return blockedApps.contains(pkg);
-    }
-
-    private void stopBlockedMedia() {
-        try {
-            AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-            if (audioManager != null) {
-                audioManager.requestAudioFocus(null, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN_TRANSIENT);
-                audioManager.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_MEDIA_PAUSE));
-                audioManager.dispatchMediaKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_MEDIA_PAUSE));
-            }
-        } catch (Exception ignored) {
+        // Android system interface and settings.
+        if (packageName.equals("com.android.systemui")
+                || packageName.equals("com.android.settings")) {
+            return true;
         }
+
+        // Phone and emergency calling.
+        if (packageName.equals("com.android.phone")
+                || packageName.equals("com.android.dialer")
+                || packageName.equals("com.google.android.dialer")
+                || packageName.equals("com.samsung.android.dialer")) {
+            return true;
+        }
+
+        // Permission management and app installation.
+        if (packageName.equals("com.android.permissioncontroller")
+                || packageName.equals("com.google.android.permissioncontroller")
+                || packageName.contains("packageinstaller")
+                || packageName.contains("package.installer")
+                || packageName.contains("installer")) {
+            return true;
+        }
+
+        return false;
     }
 
     @Override
     public void onInterrupt() {
+        // No action required.
     }
 }
+
