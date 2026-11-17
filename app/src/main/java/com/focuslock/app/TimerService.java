@@ -1,3 +1,4 @@
+
 package com.focuslock.app;
 
 import android.app.Notification;
@@ -6,19 +7,16 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 
 public class TimerService extends Service {
 
-    private static final String CHANNEL_ID = "FocusLockTimerChannelV2";
-    private static final int NOTIFICATION_ID = 1002;
+    private static final String CHANNEL_ID =
+            "FocusLockTimerChannelV2";
 
-    private static final String PREF_NAME = "FocusLockDatabaseV2";
-    private static final String KEY_PAUSE_STARTED_AT = "pause_started_at";
-    private static final long MAX_PAUSE_DURATION_MS = 10L * 60L * 1000L;
+    private static final int NOTIFICATION_ID = 1002;
 
     private final Handler timerHandler =
             new Handler(Looper.getMainLooper());
@@ -29,78 +27,31 @@ public class TimerService extends Service {
         @Override
         public void run() {
 
-            if (!StorageHelper.isSessionActive(TimerService.this)) {
-                clearPauseTimestamp();
-                stopForeground(true);
-                stopSelf();
-                loopRunning = false;
+            long remaining =
+                    StorageHelper.syncSession(TimerService.this);
+
+            if (!StorageHelper.isSessionActive(TimerService.this)
+                    || remaining <= 0L) {
+
+                stopTimerService();
                 return;
             }
 
-            boolean isPaused =
-                    StorageHelper.isSessionPaused(TimerService.this);
+            boolean paused =
+                    StorageHelper.isSessionPaused(
+                            TimerService.this
+                    );
 
-            long remainingSeconds;
+            updateNotification(remaining, paused);
 
-            if (isPaused) {
-
-                long pauseStartedAt = getPauseStartedAt();
-
-                if (pauseStartedAt <= 0L) {
-                    pauseStartedAt = System.currentTimeMillis();
-                    savePauseStartedAt(pauseStartedAt);
-                }
-
-                long elapsedPause =
-                        System.currentTimeMillis() - pauseStartedAt;
-
-                if (elapsedPause >= MAX_PAUSE_DURATION_MS) {
-
-                    StorageHelper.setSessionPaused(
-                            TimerService.this, false);
-
-                    clearPauseTimestamp();
-
-                    isPaused = false;
-
-                    remainingSeconds =
-                            StorageHelper.tickOneSecond(
-                                    TimerService.this);
-
-                } else {
-
-                    remainingSeconds =
-                            StorageHelper.getRemainingSeconds(
-                                    TimerService.this);
-                }
-
-            } else {
-
-                clearPauseTimestamp();
-
-                remainingSeconds =
-                        StorageHelper.tickOneSecond(
-                                TimerService.this);
-            }
-
-            if (remainingSeconds <= 0L) {
-                clearPauseTimestamp();
-                stopForeground(true);
-                stopSelf();
-                loopRunning = false;
-                return;
-            }
-
-            updateNotification(remainingSeconds, isPaused);
-
-            timerHandler.postDelayed(this, 1000);
+            timerHandler.postDelayed(this, 1000L);
         }
     };
 
     @Override
     public void onCreate() {
         super.onCreate();
-        createSilentNotificationChannel();
+        createNotificationChannel();
     }
 
     @Override
@@ -109,14 +60,15 @@ public class TimerService extends Service {
             int flags,
             int startId) {
 
-        if (!StorageHelper.isSessionActive(this)) {
-            clearPauseTimestamp();
+        long remaining =
+                StorageHelper.syncSession(this);
+
+        if (!StorageHelper.isSessionActive(this)
+                || remaining <= 0L) {
+
             stopSelf();
             return START_NOT_STICKY;
         }
-
-        long remaining =
-                StorageHelper.getRemainingSeconds(this);
 
         boolean paused =
                 StorageHelper.isSessionPaused(this);
@@ -128,48 +80,31 @@ public class TimerService extends Service {
 
         if (!loopRunning) {
             loopRunning = true;
-            timerHandler.postDelayed(tickRunnable, 1000);
+            timerHandler.post(tickRunnable);
         }
 
         return START_STICKY;
     }
 
-    private SharedPreferences getTimerPreferences() {
-        return getSharedPreferences(
-                PREF_NAME,
-                MODE_PRIVATE
-        );
+    private void stopTimerService() {
+        timerHandler.removeCallbacks(tickRunnable);
+        loopRunning = false;
+        stopForeground(true);
+        stopSelf();
     }
 
-    private long getPauseStartedAt() {
-        return getTimerPreferences().getLong(
-                KEY_PAUSE_STARTED_AT,
-                0L
-        );
-    }
+    private void createNotificationChannel() {
 
-    private void savePauseStartedAt(long timestamp) {
-        getTimerPreferences().edit()
-                .putLong(KEY_PAUSE_STARTED_AT, timestamp)
-                .apply();
-    }
-
-    private void clearPauseTimestamp() {
-        getTimerPreferences().edit()
-                .remove(KEY_PAUSE_STARTED_AT)
-                .apply();
-    }
-
-    private void createSilentNotificationChannel() {
-
-        NotificationChannel channel = new NotificationChannel(
-                CHANNEL_ID,
-                "FocusLock Timer",
-                NotificationManager.IMPORTANCE_LOW
-        );
+        NotificationChannel channel =
+                new NotificationChannel(
+                        CHANNEL_ID,
+                        "FocusLock Timer",
+                        NotificationManager.IMPORTANCE_LOW
+                );
 
         channel.setDescription(
-                "Shows remaining study time and subject");
+                "Shows remaining study time and subject"
+        );
 
         channel.setSound(null, null);
         channel.enableVibration(false);
@@ -201,14 +136,15 @@ public class TimerService extends Service {
         String subject =
                 StorageHelper.getCurrentSubject(this);
 
-        String timeFormatted =
+        String formattedTime =
                 StorageHelper.formatTimeMMSS(remainingSeconds);
 
         String title = isPaused
                 ? "Paused (" + subject + ")"
                 : "Studying: " + subject;
 
-        String body = "Time Left: " + timeFormatted;
+        String body =
+                "Time Left: " + formattedTime;
 
         return new Notification.Builder(this, CHANNEL_ID)
                 .setContentTitle(title)
@@ -229,7 +165,10 @@ public class TimerService extends Service {
         if (manager != null) {
             manager.notify(
                     NOTIFICATION_ID,
-                    buildNotification(remainingSeconds, isPaused)
+                    buildNotification(
+                            remainingSeconds,
+                            isPaused
+                    )
             );
         }
     }
@@ -246,4 +185,3 @@ public class TimerService extends Service {
         return null;
     }
 }
-
