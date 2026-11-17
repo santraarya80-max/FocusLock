@@ -180,8 +180,6 @@ public class MainActivity extends Activity {
                 openAnalytics());
     }
 
-    // ADD MENU BUTTON TO EXISTING HEADER
-
     private void addNavigationButton() {
 
         View root = findViewById(android.R.id.content);
@@ -240,8 +238,6 @@ public class MainActivity extends Activity {
                 showNavigationDrawer(menuButton));
     }
 
-    // NAVIGATION DRAWER
-
     private void showNavigationDrawer(View anchor) {
 
         if (navigationDrawer != null
@@ -263,18 +259,11 @@ public class MainActivity extends Activity {
         header.setPadding(0, 0, 0, dp(20));
 
         TextView brand = makeText(
-                "FOCUSLOCK",
-                23,
-                "#FFFFFF",
-                true
-        );
+                "FOCUSLOCK", 23, "#FFFFFF", true);
 
         TextView subtitle = makeText(
                 "YOUR STUDY COMMAND CENTRE",
-                10,
-                "#55D9B0",
-                true
-        );
+                10, "#55D9B0", true);
 
         header.addView(brand);
         header.addView(subtitle);
@@ -285,8 +274,7 @@ public class MainActivity extends Activity {
         separator.setBackgroundColor(Color.rgb(35, 75, 60));
 
         drawer.addView(separator,
-                new LinearLayout.LayoutParams(
-                        -1, dp(1)));
+                new LinearLayout.LayoutParams(-1, dp(1)));
 
         android.widget.ScrollView menuScroll =
                 new android.widget.ScrollView(this);
@@ -326,17 +314,12 @@ public class MainActivity extends Activity {
 
         drawer.addView(
                 menuScroll,
-                new LinearLayout.LayoutParams(
-                        -1, 0, 1f
-                )
+                new LinearLayout.LayoutParams(-1, 0, 1f)
         );
 
         TextView footer = makeText(
                 "FOCUSLOCK V3  •  PERSONAL EDITION",
-                9,
-                "#648D7D",
-                true
-        );
+                9, "#648D7D", true);
 
         footer.setPadding(0, dp(16), 0, dp(8));
 
@@ -382,29 +365,20 @@ public class MainActivity extends Activity {
                 dp(10), dp(13), dp(8), dp(13));
 
         TextView icon = makeText(
-                symbol,
-                21,
-                "#55E6B2",
-                true
-        );
+                symbol, 21, "#55E6B2", true);
 
         icon.setGravity(Gravity.CENTER);
         icon.setBackground(
                 createRoundedBackground("#123A2D", 12));
 
         item.addView(icon,
-                new LinearLayout.LayoutParams(
-                        dp(42), dp(42)));
+                new LinearLayout.LayoutParams(dp(42), dp(42)));
 
         LinearLayout labels = new LinearLayout(this);
         labels.setOrientation(LinearLayout.VERTICAL);
 
         TextView name = makeText(
-                title,
-                14,
-                "#FFFFFF",
-                true
-        );
+                title, 14, "#FFFFFF", true);
 
         TextView state = makeText(
                 status,
@@ -481,8 +455,6 @@ public class MainActivity extends Activity {
                 AppSelectActivity.class
         ));
     }
-
-    // TIMER CONTROLS
 
     private void togglePauseResume() {
 
@@ -593,8 +565,6 @@ public class MainActivity extends Activity {
         updateUI();
     }
 
-    // DASHBOARD UPDATES
-
     private void updateUI() {
 
         int todayMins =
@@ -619,8 +589,9 @@ public class MainActivity extends Activity {
                 Math.min(100,
                         (todayMins * 100) / goalMins);
 
+        progressBarDailyGoal.setMax(goalMins);
         progressBarDailyGoal.setProgress(
-                Math.min(240, todayMins));
+                Math.min(goalMins, todayMins));
 
         tvGoalProgressText.setText(
                 "Daily Goal (4 hrs): "
@@ -641,11 +612,8 @@ public class MainActivity extends Activity {
         if (StorageHelper.isSessionActive(this)) {
 
             layoutSetupControls.setVisibility(View.GONE);
-
             btnStartFocus.setVisibility(View.GONE);
-
             btnPauseResume.setVisibility(View.VISIBLE);
-
             btnSelectApps.setEnabled(false);
 
             String subject =
@@ -659,11 +627,26 @@ public class MainActivity extends Activity {
             long remaining =
                     StorageHelper.getRemainingSeconds(this);
 
+            long total =
+                    StorageHelper.getTotalSessionSeconds(this);
+
+            if (total <= 0L) {
+                total = remaining;
+            }
+
+            int ringMaximum =
+                    (int) Math.max(1L,
+                            Math.min((long) Integer.MAX_VALUE, total));
+
+            int ringProgress =
+                    (int) Math.max(0L,
+                            Math.min((long) ringMaximum, remaining));
+
+            progressBarTimerRing.setMax(ringMaximum);
+            progressBarTimerRing.setProgress(ringProgress);
+
             tvTimerDisplay.setText(
                     StorageHelper.formatTimeMMSS(remaining));
-
-            progressBarTimerRing.setProgress(
-                    (int) remaining);
 
             int pausesLeft =
                     2 - StorageHelper.getPauseCount(this);
@@ -702,11 +685,8 @@ public class MainActivity extends Activity {
         } else {
 
             layoutSetupControls.setVisibility(View.VISIBLE);
-
             btnStartFocus.setVisibility(View.VISIBLE);
-
             btnPauseResume.setVisibility(View.GONE);
-
             btnSelectApps.setEnabled(true);
 
             tvCurrentSubjectLabel.setVisibility(View.GONE);
@@ -721,20 +701,29 @@ public class MainActivity extends Activity {
 
                 if (mins > 0) {
 
+                    int totalSeconds = (int) Math.min(
+                            (long) Integer.MAX_VALUE,
+                            mins * 60L);
+
+                    progressBarTimerRing.setMax(
+                            Math.max(1, totalSeconds));
+
+                    progressBarTimerRing.setProgress(
+                            Math.max(1, totalSeconds));
+
                     tvTimerDisplay.setText(
                             StorageHelper.formatTimeMMSS(
                                     mins * 60L));
 
-                    progressBarTimerRing.setMax(mins * 60);
-
-                    progressBarTimerRing.setProgress(
-                            mins * 60);
-
                 } else {
+                    progressBarTimerRing.setMax(1);
+                    progressBarTimerRing.setProgress(0);
                     tvTimerDisplay.setText("00:00");
                 }
 
             } catch (NumberFormatException e) {
+                progressBarTimerRing.setMax(1);
+                progressBarTimerRing.setProgress(0);
                 tvTimerDisplay.setText("00:00");
             }
         }
@@ -756,8 +745,6 @@ public class MainActivity extends Activity {
         return enabledServices != null
                 && enabledServices.contains(serviceName);
     }
-
-    // UI HELPERS
 
     private TextView makeText(
             String value,
