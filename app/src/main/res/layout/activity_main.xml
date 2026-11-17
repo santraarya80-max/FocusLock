@@ -1,3 +1,4 @@
+
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -12,7 +13,7 @@
         android:orientation="vertical"
         android:padding="18dp">
 
-        <!-- BRAND HEADER -->
+        <!-- HEADER: KEEP FIRST CHILD AS LINEARLAYOUT -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -47,10 +48,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="PERSONAL STUDY SYSTEM  •  V3"
+                    android:letterSpacing="0.08"
+                    android:text="PERSONAL STUDY SYSTEM • V3"
                     android:textColor="#6EA995"
-                    android:textSize="9sp"
-                    android:letterSpacing="0.08" />
+                    android:textSize="9sp" />
             </LinearLayout>
 
             <TextView
@@ -58,23 +59,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="#392817"
-                android:padding="11dp"
+                android:padding="10dp"
                 android:text="🔥 0 DAYS"
                 android:textColor="#FFB34D"
                 android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- PERSONAL GREETING -->
+        <!-- GREETING -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="30dp"
+            android:letterSpacing="0.15"
             android:text="YOUR STUDY SPACE"
             android:textColor="#55D9B0"
             android:textSize="10sp"
-            android:textStyle="bold"
-            android:letterSpacing="0.15" />
+            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -89,9 +90,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:text="Ready to focus and make progress?"
+            android:text="Make today count. One focused session at a time."
             android:textColor="#A0C2B5"
-            android:textSize="14sp" />
+            android:textSize="13sp" />
 
         <!-- SESSION STATUS -->
         <TextView
@@ -109,7 +110,7 @@
             android:textSize="11sp"
             android:textStyle="bold" />
 
-        <!-- FOCUS TIMER -->
+        <!-- FOCUS TIMER CARD -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -122,11 +123,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:letterSpacing="0.13"
                 android:text="CURRENT FOCUS SESSION"
                 android:textColor="#80B5A3"
                 android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.13" />
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvCurrentSubjectLabel"
@@ -144,11 +145,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="9dp"
                 android:fontFamily="sans-serif"
+                android:letterSpacing="0.03"
                 android:text="90:00"
                 android:textColor="#FFFFFF"
                 android:textSize="58sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.03" />
+                android:textStyle="bold" />
 
             <ProgressBar
                 android:id="@+id/progressBarTimerRing"
@@ -156,10 +157,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="7dp"
                 android:layout_marginTop="15dp"
-                android:max="100"
-                android:progress="100"
-                android:progressTint="#36E6AC"
-                android:progressBackgroundTint="#244A3D" />
+                android:max="5400"
+                android:progress="5400"
+                android:progressBackgroundTint="#244A3D"
+                android:progressTint="#36E6AC" />
 
             <TextView
                 android:id="@+id/tvPauseInfo"
@@ -185,20 +186,20 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CONFIGURE YOUR SESSION"
+                android:text="Configure your session"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"
+                android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="17dp"
+                android:letterSpacing="0.1"
                 android:text="SELECT SUBJECT"
                 android:textColor="#80B5A3"
                 android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -241,9 +242,9 @@
                     android:backgroundTint="#17634C"
                     android:minWidth="0dp"
                     android:padding="2dp"
-                    android:text="Chem"
+                    android:text="Chemistry"
                     android:textColor="#FFFFFF"
-                    android:textSize="10sp" />
+                    android:textSize="9sp" />
 
                 <Button
                     android:id="@+id/btnSubjOther"
@@ -278,11 +279,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="18dp"
+                android:letterSpacing="0.1"
                 android:text="SESSION DURATION"
                 android:textColor="#80B5A3"
                 android:textSize="10sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.1" />
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -373,14 +374,14 @@
             android:textStyle="bold"
             android:visibility="gone" />
 
-        <!-- TODAY'S PERFORMANCE -->
+        <!-- DAILY PERFORMANCE -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
-            android:text="TODAY'S PERFORMANCE"
+            android:layout_marginTop="28dp"
+            android:text="Today's performance"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <LinearLayout
@@ -417,18 +418,18 @@
                 android:layout_marginTop="12dp"
                 android:max="240"
                 android:progress="0"
-                android:progressTint="#FF9A32"
-                android:progressBackgroundTint="#244A3D" />
+                android:progressBackgroundTint="#244A3D"
+                android:progressTint="#FF9A32" />
         </LinearLayout>
 
-        <!-- QUICK ACCESS: APP BLOCKER -->
+        <!-- FOCUS PROTECTION -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
-            android:text="FOCUS PROTECTION"
+            android:layout_marginTop="28dp"
+            android:text="Focus protection"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <Button
@@ -451,14 +452,14 @@
             android:textColor="#FFFFFF"
             android:textSize="13sp" />
 
-        <!-- STUDY HISTORY -->
+        <!-- STUDY RECORD -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="26dp"
-            android:text="YOUR STUDY RECORD"
+            android:layout_marginTop="28dp"
+            android:text="Your study record"
             android:textColor="#FFFFFF"
-            android:textSize="16sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <Button
@@ -474,4 +475,3 @@
 
     </LinearLayout>
 </ScrollView>
-
